@@ -9,7 +9,7 @@ import ChatInterface from '../components/ChatInterface';
  * authentication by redirecting unauthenticated users to the login page.
  */
 const ChatPage: React.FC = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +36,7 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <ChatInterface />
+      <ChatInterface onLogout={logout} user={user} />
     </div>
   );
 };

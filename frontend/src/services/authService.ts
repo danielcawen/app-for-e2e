@@ -9,8 +9,8 @@ class AuthService {
   /**
    * Registers a new user.
    */
-  async signup(email: string, password: string): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/signup', { email, password });
+  async signup(email: string, password: string, firstName: string, lastName: string): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>('/auth/signup', { email, password, firstName, lastName });
     return response.data;
   }
 

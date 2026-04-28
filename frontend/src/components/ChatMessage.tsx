@@ -14,6 +14,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
   return (
     <div
+      data-testid="chat-message"
+      data-sender={message.sender_type}
       className={`flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'
         }`}
     >
@@ -23,10 +25,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'
           }`}
       >
-        <p className="text-sm md:text-base whitespace-pre-wrap break-words">
+        <p data-testid="message-content" className="text-sm md:text-base whitespace-pre-wrap break-words">
           {message.content}
         </p>
         <span
+          data-testid="message-timestamp"
           className={`text-[10px] mt-1 block opacity-70 ${isUser ? 'text-indigo-100' : 'text-gray-500'
             }`}
         >

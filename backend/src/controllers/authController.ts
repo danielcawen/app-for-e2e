@@ -8,18 +8,21 @@ import { AuthRequest } from '../middleware/authMiddleware';
 class AuthController {
   async signup(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password } = req.body;
+      const { email, password, firstName, lastName } = req.body;
 
-      if (!email || !password) {
-        throw new AppError('Email and password are required', 400, 'MISSING_FIELDS');
+      if (!email || !password || !firstName || !lastName) {
+        throw new AppError('Email, password, first name and last name are required', 400, 'MISSING_FIELDS');
       }
 
-      const { user, token } = await userService.signup(email, password);
+      const { user, verificationToken } = await userService.signup(email, password, firstName, lastName);
+
+      const frontendUrl = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
+      const verificationLink = `${frontendUrl}/auth/verify?token=${verificationToken}`;
+      await emailService.sendVerificationEmail(email, verificationLink);
 
       res.status(201).json({
         success: true,
-        message: 'User registered successfully',
-        data: { user, token },
+        message: 'Account created. Please check your email to verify your account.',
       });
     } catch (error: any) {
       if (error instanceof AppError) throw error;

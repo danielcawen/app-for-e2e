@@ -5,6 +5,8 @@ import { AppError } from '../middleware/errorHandler';
 interface User {
   id: number;
   email: string;
+  first_name: string | null;
+  last_name: string | null;
   is_verified: boolean;
 }
 
@@ -15,7 +17,7 @@ export class UserService {
    * @param password User's plain text password
    * @returns The created user and their authentication token
    */
-  async signup(email: string, password: string): Promise<{ user: User; token: string }> {
+  async signup(email: string, password: string, firstName: string, lastName: string): Promise<{ user: User; verificationToken: string }> {
     const passwordHash = await hashPassword(password);
 
     const client = await pool.connect();
@@ -28,15 +30,22 @@ export class UserService {
       }
 
       const result = await client.query(
-        'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, is_verified',
-        [email, passwordHash]
+        'INSERT INTO users (email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name, is_verified',
+        [email, passwordHash, firstName, lastName]
       );
 
       const user = result.rows[0];
-      const token = generateToken({ userId: user.id, email: user.email });
+      const verificationToken = generateMagicLinkToken();
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
+      await client.query(
+        'UPDATE users SET magic_token = $1, magic_token_expires_at = $2 WHERE id = $3',
+        [verificationToken, expiresAt, user.id]
+      );
 
       await client.query('COMMIT');
-      return { user, token };
+      return { user, verificationToken };
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -52,13 +61,18 @@ export class UserService {
    * @returns The user data and their authentication token
    */
   async login(email: string, password: string): Promise<{ user: User; token: string }> {
-    const result = await pool.query('SELECT id, email, is_verified, password_hash FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT id, email, first_name, last_name, is_verified, password_hash FROM users WHERE email = $1', [email]);
 
     if (result.rowCount === 0) {
       throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
     }
 
     const user = result.rows[0];
+
+    if (!user.password_hash) {
+      throw new AppError('This account uses magic link login. Please request a magic link.', 401, 'NO_PASSWORD');
+    }
+
     const isValid = await comparePassword(password, user.password_hash);
 
     if (!isValid) {
@@ -97,7 +111,7 @@ export class UserService {
     const result = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
 
     if (result.rowCount === 0) {
-      throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+      throw new AppError('No account found with that email address. Please sign up first.', 404, 'USER_NOT_FOUND');
     }
 
     const magicToken = generateMagicLinkToken();
@@ -119,7 +133,7 @@ export class UserService {
    */
   async verifyMagicLink(token: string): Promise<User> {
     const result = await pool.query(
-      'SELECT id, email, is_verified FROM users WHERE magic_token = $1 AND magic_token_expires_at > CURRENT_TIMESTAMP',
+      'SELECT id, email, first_name, last_name, is_verified FROM users WHERE magic_token = $1 AND magic_token_expires_at > CURRENT_TIMESTAMP',
       [token]
     );
 
@@ -134,7 +148,7 @@ export class UserService {
       [user.id]
     );
 
-    return { id: user.id, email: user.email, is_verified: true };
+    return { id: user.id, email: user.email, first_name: user.first_name, last_name: user.last_name, is_verified: true };
   }
 }
 

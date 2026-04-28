@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import ChatPage from './pages/ChatPage';
+import VerifyPage from './pages/VerifyPage';
 
 /**
  * App component.
@@ -14,6 +15,9 @@ const App: React.FC = () => {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
+
+        {/* Magic link verify */}
+        <Route path="/auth/verify" element={<VerifyPage />} />
 
         {/* Protected Routes */}
         <Route path="/chat" element={<ChatPage />} />
