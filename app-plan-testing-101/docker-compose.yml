@@ -1,0 +1,166 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: e2e-practice-postgres
+    environment:
+      POSTGRES_DB: e2e_practice
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - e2e-network
+    restart: unless-stopped
+
+  # Mailhog for Email Testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: e2e-practice-mailhog
+    ports:
+      - "1025:1025"  # SMTP Server
+      - "8025:8025"  # Web UI
+    environment:
+      MH_STORAGE: memory
+      MH_MAILDIR_PATH: /maildir
+    networks:
+      - e2e-network
+    restart: unless-stopped
+
+  # Ollama for Local LLM (Optional - comment out if not needed)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: e2e-practice-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - e2e-network
+    restart: unless-stopped
+    # Note: After first run, exec: docker exec e2e-practice-ollama ollama pull mistral
+
+  # Redis for Sessions & Rate Limiting (Optional)
+  redis:
+    image: redis:7-alpine
+    container_name: e2e-practice-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - e2e-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: e2e-practice-backend
+    ports:
+      - "3000:3000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://devuser:devpass123@postgres:5432/e2e_practice
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: devuser
+      DB_PASSWORD: devpass123
+      
+      # Server
+      NODE_ENV: development
+      PORT: 3000
+      JWT_SECRET: dev-secret-key-change-in-production
+      JWT_EXPIRY: 7d
+      
+      # Email
+      EMAIL_SERVICE: mailhog
+      EMAIL_HOST: mailhog
+      EMAIL_PORT: 1025
+      EMAIL_FROM: noreply@e2epractice.local
+      EMAIL_SECURE: "false"
+      
+      # AI Provider
+      AI_PROVIDER: ollama
+      AI_BASE_URL: http://ollama:11434
+      AI_MODEL: mistral
+      AI_TIMEOUT: 30000
+      
+      # CORS
+      FRONTEND_URL: http://localhost:5173
+      
+      # Logging
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+      ollama:
+        condition: service_started
+    volumes:
+      - ./backend/src:/app/src
+      - /app/node_modules
+    networks:
+      - e2e-network
+    restart: unless-stopped
+    command: npm run dev
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: e2e-practice-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+      - /app/node_modules
+    networks:
+      - e2e-network
+    restart: unless-stopped
+    command: npm run dev
+
+  # pgAdmin for Database Management (Optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: e2e-practice-pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - postgres
+    networks:
+      - e2e-network
+    restart: unless-stopped
+
+networks:
+  e2e-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  ollama_data:
+    driver: local
+  redis_data:
+    driver: local
