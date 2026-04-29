@@ -11,7 +11,7 @@ const JWT_EXPIRY = process.env.JWT_EXPIRES_IN || '1d';
  */
 export function generateToken(payload: { userId: number; email: string }): string {
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRY,
+    expiresIn: JWT_EXPIRY as jwt.SignOptions['expiresIn'],
   });
 }
 

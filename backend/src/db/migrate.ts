@@ -5,7 +5,7 @@ import path from 'path';
 // Load env vars from the root .env file
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
-async function migrate() {
+export async function migrate() {
   console.log('Starting database migration...');
 
   const schema = `
@@ -64,13 +64,16 @@ async function migrate() {
     }
   } catch (error) {
     console.error('Error during migration:', error);
-    process.exit(1);
+    throw error;
   }
 }
 
-migrate().then(() => {
-  console.log('Migration process finished.');
-}).catch((err) => {
-  console.error('Migration process encountered an error:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  migrate().then(() => {
+    console.log('Migration process finished.');
+    process.exit(0);
+  }).catch((err) => {
+    console.error('Migration process encountered an error:', err);
+    process.exit(1);
+  });
+}

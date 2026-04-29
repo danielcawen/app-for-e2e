@@ -25,7 +25,7 @@ export class UserService {
       await client.query('BEGIN');
 
       const existingUser = await client.query('SELECT id FROM users WHERE email = $1', [email]);
-      if (existingUser.rowCount > 0) {
+      if ((existingUser.rowCount ?? 0) > 0) {
         throw new AppError('User with this email already exists', 400, 'USER_EXISTS');
       }
 

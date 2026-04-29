@@ -17,7 +17,7 @@ FROM nginx:stable-alpine
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 
 # Copy a custom nginx configuration if needed (optional, for SPA routing)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

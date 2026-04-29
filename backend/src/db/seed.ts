@@ -10,7 +10,7 @@ async function seed() {
   console.log('Starting database seeding...');
 
   const defaultUserEmail = 'testuser@example.com';
-  const defaultPassword = 'password123';
+  const defaultPassword = 'Password123!';
 
   try {
     const client = await pool.connect();

@@ -5,6 +5,7 @@ import path from 'path';
 import apiRoutes from './routes/apiRoutes';
 import { errorHandler, AppError } from './middleware/errorHandler';
 import pool from './db/pool';
+import { migrate } from './db/migrate';
 
 // Load environment variables from the root .after
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -40,6 +41,8 @@ app.use(errorHandler);
  */
 async function startServer() {
   try {
+    await migrate();
+
     // Check database connection before starting the server
     const client = await pool.connect();
     console.log('✅ Database connection established successfully.');

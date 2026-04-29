@@ -19,11 +19,8 @@ A full-stack application for practicing end-to-end testing across multiple layer
 # Copy and configure environment
 cp .env.example .env
 
-# Start all services
+# Start all services (migrations run automatically on backend startup)
 docker-compose up --build
-
-# In a separate terminal, run migrations
-docker exec e2d-backend npm run migrate
 ```
 
 ## Access Points
@@ -42,10 +39,9 @@ docker exec e2d-backend npm run migrate
 # Terminal 1 — start PostgreSQL and Mailhog via Docker only
 docker-compose up db mailhog
 
-# Terminal 2 — backend
+# Terminal 2 — backend (migrations run automatically on startup)
 cd backend
 npm install
-npm run migrate
 npm run dev
 
 # Terminal 3 — frontend

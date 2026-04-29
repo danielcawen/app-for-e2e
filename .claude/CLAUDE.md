@@ -17,8 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Full Stack (Docker)
 ```bash
 cp .env.example .env          # Configure environment
-docker-compose up --build     # Start all services
-docker exec e2d-backend npm run migrate  # Run migrations in separate terminal
+docker-compose up --build     # Start all services (migrations run automatically)
 ```
 
 ### Local Development (without Docker)
@@ -26,8 +25,8 @@ docker exec e2d-backend npm run migrate  # Run migrations in separate terminal
 # Terminal 1: Database & email only
 docker-compose up db mailhog
 
-# Terminal 2: Backend
-cd backend && npm install && npm run migrate && npm run dev
+# Terminal 2: Backend (migrations run automatically on startup)
+cd backend && npm install && npm run dev
 
 # Terminal 3: Frontend
 cd frontend && npm install && npm run dev
