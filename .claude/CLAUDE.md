@@ -188,6 +188,7 @@ npm test -- --testNamePattern="test name pattern"
 - `JWT_SECRET`: Secret for signing auth tokens
 - `MAIL_HOST`, `MAIL_PORT`: Nodemailer SMTP config (points to Mailhog in dev)
 - `AI_PROVIDER`: "mock" | "ollama" | "openai" (determines chat service behavior)
+- `AI_BASE_URL`: Ollama endpoint — use `http://host.docker.internal:11434` in Docker, `http://localhost:11434` for local dev
 
 ---
 
@@ -199,3 +200,4 @@ npm test -- --testNamePattern="test name pattern"
 4. **PostgreSQL required**: Backend fails fast if DB is unavailable (no fallback/mocking).
 5. **JWT tokens expire**: Frontend must handle 401 responses and re-authenticate.
 6. **Vite requires named exports for certain imports**: Check if `import * as X` is needed or if default export works.
+7. **Ollama in Docker**: `AI_BASE_URL=http://localhost:11434` won't work from inside a container. Use `http://host.docker.internal:11434` to reach Ollama running on the host machine.

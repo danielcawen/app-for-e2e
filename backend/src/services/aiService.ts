@@ -80,19 +80,18 @@ class AIService {
       throw new AppError('Ollama base URL is missing', 500, 'CONFIG_ERROR');
     }
 
-    const response = await axios.post(
-      `${this.baseUrl}/api/generate`,
-      {
-        model: this.model,
-        prompt: prompt,
-        stream: false,
-      },
-      {
-        timeout: 30000,
-      }
-    );
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const response = await axios.post(
+        `${this.baseUrl}/api/generate`,
+        { model: this.model, prompt, stream: false },
+        { timeout: 30000 }
+      );
+      const text = response.data.response;
+      if (text) return text;
+      if (attempt < 3) await new Promise(r => setTimeout(r, 2000));
+    }
 
-    return response.data.response;
+    throw new AppError('Ollama returned empty response', 500, 'AI_SERVICE_ERROR');
   }
 
   /**
