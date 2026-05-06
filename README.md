@@ -20,6 +20,7 @@ A full-stack application for practicing end-to-end testing across multiple layer
 cp .env.example .env
 
 # Start all services (migrations run automatically on backend startup)
+# If needed: sudo systemctl start docker 
 docker-compose up --build
 ```
 
@@ -63,6 +64,33 @@ npm run dev
 | POST | /api/chat/messages | Yes | Send message |
 | GET | /api/chat/messages/:conversationId | Yes | Get history |
 | DELETE | /api/chat/messages/:messageId | Yes | Delete message |
+
+## AI Chat Configuration
+
+The chatbot supports three providers, set via `.env`:
+
+| `AI_PROVIDER` | Description |
+|---------------|-------------|
+| `mock` | Default — no external service needed |
+| `ollama` | Local model via Ollama |
+| `openai` | OpenAI API |
+
+### Using Ollama (local model)
+
+1. [Install Ollama](https://ollama.com) and pull a model:
+   ```bash
+   ollama pull llama3.2
+   ```
+2. Set these in your `.env`:
+   ```
+   AI_PROVIDER=ollama
+   AI_MODEL=llama3.2
+   AI_BASE_URL=http://localhost:11434        # local dev
+   # AI_BASE_URL=http://host.docker.internal:11434  # if using Docker
+   ```
+3. Make sure Ollama is running (`ollama serve`) before starting the app.
+
+> **Note:** When running via `docker-compose`, use `host.docker.internal` instead of `localhost` so the container can reach Ollama on your host machine.
 
 ## Testing the App
 

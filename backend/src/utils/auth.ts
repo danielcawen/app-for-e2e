@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret_key_for_development_only';
 const JWT_EXPIRY = process.env.JWT_EXPIRES_IN || '1d';
@@ -33,8 +34,7 @@ export function verifyToken(token: string): any | null {
  * @returns A random string token
  */
 export function generateMagicLinkToken(): string {
-  return Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15);
+  return randomBytes(32).toString('hex');
 }
 
 /**
