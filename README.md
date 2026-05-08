@@ -20,7 +20,7 @@ A full-stack application for practicing end-to-end testing across multiple layer
 cp .env.example .env
 
 # Start all services (migrations run automatically on backend startup)
-# If needed: sudo systemctl start docker 
+# If needed on linux: sudo systemctl start docker 
 docker-compose up --build
 ```
 
