@@ -54,8 +54,9 @@ class AIService {
       throw new AppError('OpenAI API key is missing', 500, 'CONFIG_ERROR');
     }
 
+    const baseUrl = this.baseUrl || 'https://api.openai.com/v1'
     const response = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
+      `${baseUrl}/chat/completions`,
       {
         model: this.model,
         messages: [{ role: 'user', content: prompt }],
