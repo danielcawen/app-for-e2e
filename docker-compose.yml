@@ -62,6 +62,7 @@ services:
       AI_BASE_URL: ${AI_BASE_URL:-}
       AI_MODEL: ${AI_MODEL:-gpt-3.5-turbo}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      MOBILE_DEEP_LINK_BASE: e2epractice://auth
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
